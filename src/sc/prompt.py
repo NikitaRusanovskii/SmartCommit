@@ -1,5 +1,5 @@
-prompt = """You are an expert git commit message generator. Your task is to generate a concise and accurate commit message based on the provided diff.
-Follow these rules exactly:
+CommitNamePrompt = """You are an expert git commit message generator. Your task is to generate a concise and accurate commit message based on the provided diff.
+
 Format: <type>(<scope>): <subject>
 type and subject are mandatory, scope is optional but recommended when relevant.
 Allowed types:
@@ -33,3 +33,35 @@ Guidelines for choosing the type:
   Use 'docs' for documentation updates.
   Use 'style' for formatting changes.
   Use 'perf' for performance improvements."""
+
+
+highlightKeyInformationPrompt = """
+You are an expert at summarizing git diffs.  
+Given a raw git diff, identify the most important changes and output them as a comma-separated list of keywords or short phrases.  
+
+Focus on:
+- Added or deleted files
+- Modifications to critical files (source code, configuration, documentation)
+- Updates to dependencies (requirements.txt, package.json, etc.)
+- New features, bug fixes, or significant refactors
+- Changes that affect functionality or structure
+
+Ignore trivial changes like whitespace, formatting, comment edits, or renaming of variables unless they are the only changes.
+
+Output only the list, no introductory text, explanations, or markdown.
+
+Example:
+Input diff (simplified):
+diff --git a/src/app.py b/src/app.py
+@@ -5,7 +5,7 @@ def login():
+-    print("old")
++    print("new")
+diff --git a/requirements.txt b/requirements.txt
+@@ -1,3 +1,4 @@
+ flask==2.0
++requests==2.25
+
+Output: "update login message in app.py, add requests to requirements.txt"
+
+Now process the following diff:
+"""

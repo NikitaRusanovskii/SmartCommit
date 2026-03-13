@@ -1,8 +1,15 @@
 import ollama
 import subprocess
-from prompt import prompt
+import argparse
+from sc.prompt import CommitNamePrompt, highlightKeyInformationPrompt
 
-MODEL = "phi3:3.8b-mini-128k-instruct-q4_K_M"  # Must be pulled, ollama
+MODEL = "codellama:7b-instruct"  # Must be pulled, ollama
+
+
+def highlightKeyInformation(diff: str) -> str:
+    return ollama.chat(model=MODEL, messages=[
+        {'role': 'user', 'content': f"""{highlightKeyInformationPrompt}{diff}"""}
+    ])
 
 
 def generateCommitName(
@@ -11,11 +18,11 @@ def generateCommitName(
     short_clue: str = "nothing",
 ) -> str:
 
-    _prompt = f"""{prompt} Analyze the following diff and generate a commit
+    _prompt = f"""{CommitNamePrompt} Analyze the following diff and generate a commit
                   message that accurately describes the change.
                   branch name: {branch_name}, clue :{short_clue}
-                  Diff:
-                  {diff}
+                  Key changes:
+                  {highlightKeyInformation(diff)}
                   Output ONLY the commit message line. Do not include any
                   explanations, extra text, markdown, or backticks.
                """
@@ -29,7 +36,7 @@ def generateCommitName(
 
 def main():
     git_diff = subprocess.run(
-        ["git", "diff"], capture_output=True, text=True, check=True
+        ["git", "--no-pager", "diff", "HEAD"], capture_output=True, text=True, check=True
     )
 
     branch_name = subprocess.run(
@@ -45,5 +52,19 @@ def main():
     print(commitName["message"]["content"])
 
 
+def run():
+    parser = argparse.ArgumentParser(prog="sc")
+    args = parser.parse_args()
+
+    subparsers = parser.add_subparsers(dest="command", required=True,
+                                       help="Available commands")
+    run_parser = subparsers.add_parser("run", help="Generate commit message")
+
+    args = parser.parse_args()
+
+    if args.command == "run":
+        main()
+
+
 if __name__ == "__main__":
-    main()
+    run()
