@@ -31,11 +31,17 @@ def main():
     git_diff = subprocess.run(
         ["git", "diff"], capture_output=True, text=True, check=True
     )
+
     branch_name = subprocess.run(
-        ["git", "branch", "--show-current"], capture_output=True, text=True, check=True
+        ["git", "branch", "--show-current"], capture_output=True, text=True,
+        check=True
     )
 
-    commitName = generateCommitName(branch_name=branch_name, diff=git_diff)
+    stripped_diff = git_diff.stdout.strip()
+    stripped_name = branch_name.stdout.strip()
+
+    commitName = generateCommitName(branch_name=stripped_name,
+                                    diff=stripped_diff)
     print(commitName["message"]["content"])
 
 
