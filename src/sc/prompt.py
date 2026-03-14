@@ -1,35 +1,69 @@
-CommitNamePrompt = """You generate a single Conventional Commit message
-from a git diff summary.
+combinedPrompt = """
+You generate a single Conventional Commit message from a git diff.
 
-Return ONLY the commit message. No explanations, no quotes, no markdown.
+Return ONLY the commit message.
+No explanations, no quotes, no markdown, no backticks, no extra text.
 
-Input format: list of phrases in the
-format "filename: phrase", separated by commas
+Context:
+branch name: {branch_name}
+hint: {tooltip}
+
+Input:
+raw git diff
+
+{difference}
+
+Processing instructions:
+
+1. Analyze the git diff and extract the key changes.
+
+Ignore:
+
+* whitespace-only changes
+* formatting-only edits
+* comment-only edits
+* auto-generated files
+* variable renames unless they affect functionality
+
+Focus on:
+
+* added or deleted files
+* source code changes
+* structural refactors
+* dependency updates
+* configuration changes
+* bug fixes
+* new functionality
+
+Internally summarize the diff as phrases in the format:
+filename: phrase
+
+Each phrase should:
+
+* describe a meaningful change
+* reference the affected file or module
+* use a short action phrase
+
+2. From those changes generate a single Conventional Commit message.
 
 Format:
 type(scope): subject
 
 Rules:
 
+* output exactly ONE line
 * type and subject are required
 * scope is optional
-* the scope must include the path to the file and the name
-of the file that was modified
+* scope must include the path and file name if obvious
 * subject must be ≤ 50 characters
 * subject must be imperative present tense
-* capitalize the first word of the subject
+* capitalize the first word
 * do not end the subject with a period
-* output exactly ONE line
-
-* The commit must be atomic, so the output must describe a single key change,
-composed of the input phrases. If the changes are of different types, you
-should return a response in the format "Warning about
-non-atomic commit. Commit name."
 
 Allowed types:
 feat, fix, docs, style, refactor, perf, test, chore
 
-Type selection priority:
+Type priority:
 feat > fix > perf > refactor > docs > style > test > chore
 
 Type definitions:
@@ -40,70 +74,36 @@ perf: performance improvement
 docs: documentation changes only
 style: formatting changes only
 test: test-only changes
-chore: build system, dependencies, configs, or maintenance
+chore: build system, dependencies, configs, maintenance
 
 Scope rules:
 
-* scope should be a module or directory if obvious (auth, cli, db, ui)
+* use a module or directory if obvious (auth, cli, db, ui)
 * if unclear, omit the scope
 
 Subject rules:
 
-* summarize the MAIN change only
+* summarize ONLY the main change
 * do not list multiple changes
-* use verbs such as add, remove, update, fix, refactor
+* prefer verbs such as add, remove, update, fix, refactor
 
-Ignore:
+Atomicity rule:
+The commit must represent a single key change composed from the input changes.
+If multiple unrelated change types are present, output:
 
-* whitespace-only changes
-* comment-only edits
-* auto-generated files
-"""
+Warning about non-atomic commit. Commit name.
 
+3. Final validation.
 
-highlightKeyInformationPrompt = """
-You should summarize git diffs to the key changes.
+Ensure the final commit message length is ≤ 75 characters.
 
-Input: raw git diff
-Output: comma-separated list of short phrases of the form "filename: phrase."
+If it exceeds 75 characters:
 
-Output rules:
+* compress the wording
+* keep the meaning
+* keep the Conventional Commit format
+* ensure the final message is ≤ 75 characters.
 
-* return ONLY the list
-* no explanations
-* no markdown
-* no quotes
-* no new lines
-
-Focus on:
-
-* added or deleted files
-* changes in source code files
-* structural refactors
-* dependency updates
-* configuration changes
-* bug fixes or new functionality
-
-Ignore:
-
-* whitespace changes
-* formatting-only edits
-* comment-only edits
-* variable renames unless they affect functionality
-
-Each phrase should:
-
-* describe a meaningful change
-* reference the affected file or module
-* use short action phrases
-
-Now summarize the following diff:
-
-"""
-
-finalPrompt = """
-    You're given a commit name, according to commit convention. You must check
-    that it's 75 characters long. If the name is >75 characters long,
-    summarize the changes so they all fit within <=75 characters.
-    commit name: \n
+Final output:
+Return ONLY the final commit message line.
 """

@@ -1,66 +1,33 @@
 import ollama
 import subprocess
 import argparse
-from sc.prompt import (
-    CommitNamePrompt, highlightKeyInformationPrompt,
-    finalPrompt
-)
+from sc.prompt import combinedPrompt
 MODEL = "qwen2.5-coder:7b"  # model name
 
 
-def highlightKeyInformation(diff: str) -> str:
-    response = ollama.chat(
-        model=MODEL,
-        messages=[
-            {"role": "user", "content": f"""{highlightKeyInformationPrompt}
-{diff}"""}
-        ],
-    )["message"]["content"]
+class PromptGenerator:
+    def __init__(self,
+                 branch_name: str,
+                 difference: str,
+                 tooltip: str):
+        self.branch_name = branch_name
+        self.diff = difference
+        self.tooltip = tooltip
 
-    # print("Суммаризация разницы коммитов: \n", response)
-    return response
-
-
-def generateCommitName(
-    branch_name: str = "nothing",
-    diff: str = "nothing",
-    tooltip: str = "nothing",
-) -> str:
-
-    _prompt = f"""{CommitNamePrompt} Analyze the following diff
-                  and generate a commit
-                  message that accurately describes the change.
-                  branch name: {branch_name}, clue :{tooltip}
-                  Key changes:
-                  {highlightKeyInformation(diff)}
-                  Output ONLY the commit message line. Do not include any
-                  explanations, extra text, markdown, or backticks.
-               """
-
-    response = ollama.chat(
-        model=MODEL,
-        messages=[{"role": "user", "content": _prompt}],
-        options={"num_predict": 100, "temperature": 0.1},
-    )["message"]["content"]
-
-    # print('Формирование коммита: \n', response)
-
-    return response
+    def generatePrompt(self):
+        response = ollama.chat(
+            model=MODEL,
+            messages=[{"role": "user", "content": combinedPrompt.format(
+                branch_name=self.branch_name,
+                difference=self.diff,
+                tooltip=self.tooltip
+            )}],
+            options={"num_predict": 100,
+                     "temperature": 0.1})["message"]["content"]
+        return response
 
 
-def finalize(commitName: str) -> str:
-    response = ollama.chat(
-        model=MODEL,
-        messages=[{"role": "user", "content": finalPrompt + commitName}],
-        options={"num_predict": 100, "temperature": 0.1},
-    )["message"]["content"]
-
-    # print('Финальная версия: \n', response)
-
-    return response
-
-
-def main(tooltip: str):
+def main(tooltip: str = 'nothing'):
     git_diff = subprocess.run(
         ["git", "--no-pager", "diff", "HEAD"],
         capture_output=True,
@@ -76,10 +43,13 @@ def main(tooltip: str):
     stripped_diff = git_diff.stdout.strip()
     stripped_name = branch_name.stdout.strip()
 
-    commitName = finalize(generateCommitName(branch_name=stripped_name,
-                                             diff=stripped_diff,
-                                             tooltip=tooltip))
-    print(commitName)
+    promptGen = PromptGenerator(
+        stripped_name,
+        stripped_diff,
+        tooltip
+    )
+
+    print(promptGen.generatePrompt())
 
 
 def run():
