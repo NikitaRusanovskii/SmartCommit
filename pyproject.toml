@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [project.scripts]
-smc = "sc.main:run"
+smc = "sc.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
