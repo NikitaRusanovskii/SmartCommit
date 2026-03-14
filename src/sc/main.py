@@ -57,6 +57,7 @@ def finalize(commitName: str) -> str:
 
     return response
 
+
 def main():
     git_diff = subprocess.run(
         ["git", "--no-pager", "diff", "HEAD"],
