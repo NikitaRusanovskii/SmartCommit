@@ -12,7 +12,8 @@ def highlightKeyInformation(diff: str) -> str:
     response = ollama.chat(
         model=MODEL,
         messages=[
-            {"role": "user", "content": f"""{highlightKeyInformationPrompt}{diff}"""}
+            {"role": "user", "content": f"""{highlightKeyInformationPrompt}
+{diff}"""}
         ],
     )["message"]["content"]
 
@@ -23,12 +24,13 @@ def highlightKeyInformation(diff: str) -> str:
 def generateCommitName(
     branch_name: str = "nothing",
     diff: str = "nothing",
-    short_clue: str = "nothing",
+    tooltip: str = "nothing",
 ) -> str:
 
-    _prompt = f"""{CommitNamePrompt} Analyze the following diff and generate a commit
+    _prompt = f"""{CommitNamePrompt} Analyze the following diff
+                  and generate a commit
                   message that accurately describes the change.
-                  branch name: {branch_name}, clue :{short_clue}
+                  branch name: {branch_name}, clue :{tooltip}
                   Key changes:
                   {highlightKeyInformation(diff)}
                   Output ONLY the commit message line. Do not include any
@@ -58,7 +60,7 @@ def finalize(commitName: str) -> str:
     return response
 
 
-def main():
+def main(tooltip: str):
     git_diff = subprocess.run(
         ["git", "--no-pager", "diff", "HEAD"],
         capture_output=True,
@@ -67,14 +69,16 @@ def main():
     )
 
     branch_name = subprocess.run(
-        ["git", "branch", "--show-current"], capture_output=True, text=True, check=True
+        ["git", "branch", "--show-current"], capture_output=True,
+        text=True, check=True
     )
 
     stripped_diff = git_diff.stdout.strip()
     stripped_name = branch_name.stdout.strip()
 
     commitName = finalize(generateCommitName(branch_name=stripped_name,
-                                             diff=stripped_diff))
+                                             diff=stripped_diff,
+                                             tooltip=tooltip))
     print(commitName)
 
 
@@ -83,12 +87,13 @@ def run():
     subparsers = parser.add_subparsers(
         dest="command", required=True, help="Available commands"
     )
-    run_parser = subparsers.add_parser("run", help="Generate commit message")
+    subparsers.add_parser("run", help="Generate commit message")
+    parser.add_argument('-t', '--tooltip')
 
     args = parser.parse_args()
 
     if args.command == "run":
-        main()
+        main(args.tooltip)
 
 
 if __name__ == "__main__":

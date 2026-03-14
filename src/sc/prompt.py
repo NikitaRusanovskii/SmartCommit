@@ -13,7 +13,8 @@ Rules:
 
 * type and subject are required
 * scope is optional
-* the scope must include the path to the file and the name of the file that was modified
+* the scope must include the path to the file and the name
+of the file that was modified
 * subject must be ≤ 50 characters
 * subject must be imperative present tense
 * capitalize the first word of the subject
@@ -22,7 +23,8 @@ Rules:
 
 * The commit must be atomic, so the output must describe a single key change,
 composed of the input phrases. If the changes are of different types, you
-should return a response in the format "Warning about non-atomic commit. Commit name."
+should return a response in the format "Warning about
+non-atomic commit. Commit name."
 
 Allowed types:
 feat, fix, docs, style, refactor, perf, test, chore
