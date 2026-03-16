@@ -5,3 +5,4 @@ genRepNumPredict = 200
 genRepTemp = 0.1
 genGitHelpNumPredict = 200
 genGitHelpTemp = 0.1
+StoryFilePath = ''
