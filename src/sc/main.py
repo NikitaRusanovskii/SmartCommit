@@ -1,56 +1,6 @@
-import ollama
 import subprocess
 import argparse
-from sc.prompt import (
-    commitNamePrompt,
-    createReportsPrompt,
-    gitAIHelperPrompt
-)
-MODEL = "qwen2.5-coder:7b"  # model name
-
-
-class DiffHandler:
-    def __init__(self,
-                 branch_name: str,
-                 difference: str,
-                 ):
-        self.branch_name = branch_name
-        self.diff = difference
-
-    def generateName(self, tooltip: str) -> str:
-        response = ollama.chat(
-            model=MODEL,
-            messages=[{"role": "user", "content": commitNamePrompt.format(
-                branch_name=self.branch_name,
-                difference=self.diff,
-                tooltip=tooltip
-            )}],
-            options={"num_predict": 100,
-                     "temperature": 0.1})["message"]["content"]
-        return response
-
-    def generateReport(self, tooltip: str) -> str:
-        response = ollama.chat(
-            model=MODEL,
-            messages=[{"role": "user", "content": createReportsPrompt.format(
-                branch_name=self.branch_name,
-                difference=self.diff,
-                tooltip=tooltip
-            )}],
-            options={"num_predict": 200,
-                     "temperature": 0.1})["message"]["content"]
-        return response
-
-    def generateGitHelpAIResponse(self, tooltip: str) -> str:
-        response = ollama.chat(
-            model=MODEL,
-            messages=[{"role": "user", "content": gitAIHelperPrompt.format(
-                branch_name=self.branch_name,
-                tooltip=tooltip
-            )}],
-            options={"num_predict": 200,
-                     "temperature": 0.1})["message"]["content"]
-        return response
+from .Handler import DiffHandler
 
 
 def generateName(df: DiffHandler, tooltip: str = None) -> str:
