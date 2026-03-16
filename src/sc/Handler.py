@@ -19,6 +19,7 @@ class DiffHandler:
     def __init__(self,
                  branch_name: str,
                  difference: str,
+                 save_history: bool = False
                  ):
         self.branch_name = branch_name
         self.diff = difference
@@ -46,6 +47,11 @@ class DiffHandler:
             options={"num_predict": genRepNumPredict,
                      "temperature": genRepTemp})["message"]["content"]
         return response
+
+
+class QuestionHandler:
+    def __init__(self):
+        pass
 
     def generateGitHelpAIResponse(self, tooltip: str) -> str:
         response = ollama.chat(

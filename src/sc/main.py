@@ -1,48 +1,47 @@
 import subprocess
 import argparse
-from .Handler import DiffHandler
+from .Handler import DiffHandler, QuestionHandler
 
 
-def generateName(df: DiffHandler, tooltip: str = None) -> str:
-    return df.generateName(tooltip)
-
-
-def generateReport(df: DiffHandler, tooltip: str = None) -> str:
-    return df.generateReport(tooltip)
-
-
-def generateAIHelpGit(df: DiffHandler, tooltip: str = None) -> str:
-    return df.generateGitHelpAIResponse(tooltip)
-
-
-def run(tooltip: str = None, command: str = None):
-    git_diff = subprocess.run(
+def getDiff() -> str:
+    return subprocess.run(
         ["git", "--no-pager", "diff", "HEAD"],
         capture_output=True,
         text=True,
         check=True,
-    )
+    ).stdout.strip()
 
-    branch_name = subprocess.run(
+
+def getBranchName() -> str:
+    return subprocess.run(
         ["git", "branch", "--show-current"], capture_output=True,
         text=True, check=True
-    )
+    ).stdout.strip()
 
-    stripped_diff = git_diff.stdout.strip()
-    stripped_name = branch_name.stdout.strip()
 
-    diffHandler = DiffHandler(
-        stripped_name,
-        stripped_diff,
-    )
+def generateName(tooltip: str = None) -> str:
+    dh = DiffHandler(getBranchName(), getDiff())
+    return dh.generateName(tooltip)
 
+
+def generateReport(tooltip: str = None) -> str:
+    dh = DiffHandler(getBranchName(), getDiff())
+    return dh.generateReport(tooltip)
+
+
+def generateAIHelpGit(tooltip: str = None) -> str:
+    qh = QuestionHandler()
+    return qh.generateGitHelpAIResponse(tooltip)
+
+
+def handle(tooltip: str = None, command: str = None):
     funcs = {
         'name': generateName,
         'repo': generateReport,
         'ai': generateAIHelpGit
     }
 
-    result = funcs[command](diffHandler, tooltip)
+    result = funcs[command](tooltip)
     print(result)
 
 
@@ -57,7 +56,7 @@ def main():
     parser.add_argument('-t', '--tooltip')
 
     args = parser.parse_args()
-    run(args.tooltip, args.command)
+    handle(args.tooltip, args.command)
 
 
 if __name__ == "__main__":
